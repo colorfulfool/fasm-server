@@ -79,6 +79,7 @@ main:
   cmp rax, 0
   jl error
 
+next_request:
   write 1, accept_socket_msg, accept_socket_msg_len
   accept [sockfd], cliaddr, cliaddr_len
   cmp rax, 0
@@ -86,7 +87,9 @@ main:
 
   mov qword [connfd], rax
 
-  write [connfd], hello, hello_len
+  write [connfd], response, response_len
+  close [connfd]
+  jmp next_request
   
   close [sockfd]
   close [connfd]
@@ -116,6 +119,13 @@ cliaddr_len dd cliaddr.size
 
 hello db "Hello from flat assembler!", 10
 hello_len = $ - hello
+
+response db "HTTP/1.1 200 OK", 13, 10
+         db "Content-Type: text/html", 13, 10
+         db "Connection: close", 13, 10
+         db 13, 10
+         db "<h1>Hellow from flat assembler!</h1>", 10
+response_len = $ - response
 
 start db "Starting web server...", 10
 start_len = $ - start
