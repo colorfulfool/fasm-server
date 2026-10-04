@@ -123,7 +123,12 @@ next_request:
 
   write 1, [request_cur], [request_len]
 
-repond_with_html:
+  mov rbx, [request_cur]
+  add rbx, 5
+
+  cmp byte [rbx], 'f'
+  je respond_with_svg
+
   write [connfd], response, response_len
   close [connfd]
   jmp next_request
