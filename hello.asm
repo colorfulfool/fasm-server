@@ -107,7 +107,13 @@ next_request:
 
   write 1, [request_cur], [request_len]
 
+repond_with_html:
   write [connfd], response, response_len
+  close [connfd]
+  jmp next_request
+
+respond_with_svg:
+  write [connfd], response_svg, response_svg_len
   close [connfd]
   jmp next_request
   
@@ -150,6 +156,15 @@ response db "HTTP/1.1 200 OK", 13, 10
          db 13, 10
          db "<h1>Hellow from flat assembler!</h1>", 10
 response_len = $ - response
+
+response_svg db "HTTP/1.1 200 OK", 13, 10
+             db "Content-Type: image/svg+xml", 13, 10
+             db "Connection: close", 13, 10
+             db 13, 10
+             db "<svg width='16' height='16' fill='none' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'>", 10
+             db "<circle cx='50' cy='50' r='30' stroke='firebrick' stroke-width='10' />", 10
+             db "</svg>", 10
+response_svg_len = $ - response_svg
 
 start db "Starting web server...", 10
 start_len = $ - start
