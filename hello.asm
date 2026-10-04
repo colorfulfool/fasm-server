@@ -3,6 +3,8 @@ format ELF64 executable
 AF_INET = 2
 SOCK_STREAM = 1
 INADDR_ANY = 0
+SOL_SOCKET = 1
+SO_REUSEADDR = 2
 
 MAX_CONN equ 5
 REQUEST_CAP equ 128*1024
@@ -26,6 +28,16 @@ macro socket domain, type, protocol {
   mov rdi, domain
   mov rsi, type
   mov rdx, protocol
+  syscall
+}
+
+macro setsockopt sockfd, level, optname, optval, optlen {
+  mov rax, 54
+  mov rdi, sockfd
+  mov rsi, level
+  mov rdx, optname
+  mov r10, optval
+  mov r8, optlen
   syscall
 }
 
@@ -76,6 +88,10 @@ main:
   cmp rax, 0
   jl error
   mov qword [sockfd], rax
+
+  setsockopt [sockfd], SOL_SOCKET, SO_REUSEADDR, one, 4
+  cmp rax, 0
+  jl error
 
   write 1, bind_socket_msg, bind_socket_msg_len
   mov word [sockaddr.sin_family], AF_INET
@@ -139,6 +155,7 @@ struc sockaddr_in {
 
 sockfd dq -1
 connfd dq -1
+one dd 1
 sockaddr sockaddr_in
 cliaddr sockaddr_in
 cliaddr_len dd cliaddr.size
