@@ -4,6 +4,9 @@ AF_INET = 2
 SOCK_STREAM = 1
 INADDR_ANY = 0
 
+MAX_CONN equ 5
+REQUEST_CAP equ 128*1024
+
 macro write fd, buf, count {
   mov rax, 1
   mov rdi, fd
@@ -49,6 +52,14 @@ macro accept sockfd, addr, addrlen {
   syscall
 }
 
+macro read fildes, buf, nbyte {
+  mov rax, 0
+  mov rdi, fildes
+  mov rsi, buf
+  mov rdx, nbyte
+  syscall
+}
+
 macro close sockfd {
   mov rax, 3
   mov rdi, sockfd
@@ -75,7 +86,7 @@ main:
   jl error
 
   write 1, listen_socket_msg, listen_socket_msg_len
-  listen [sockfd], 5
+  listen [sockfd], MAX_CONN
   cmp rax, 0
   jl error
 
@@ -86,6 +97,15 @@ next_request:
   jl error
 
   mov qword [connfd], rax
+
+  read [connfd], request, REQUEST_CAP
+  cmp rax, 0
+  jl error
+  mov [request_len], rax
+
+  mov [request_cur], request
+
+  write 1, [request_cur], [request_len]
 
   write [connfd], response, response_len
   close [connfd]
@@ -119,6 +139,10 @@ cliaddr_len dd cliaddr.size
 
 hello db "Hello from flat assembler!", 10
 hello_len = $ - hello
+
+request_len rq 1
+request_cur rq 1
+request     rb REQUEST_CAP
 
 response db "HTTP/1.1 200 OK", 13, 10
          db "Content-Type: text/html", 13, 10
