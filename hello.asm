@@ -6,7 +6,7 @@ INADDR_ANY = 0
 SOL_SOCKET = 1
 SO_REUSEADDR = 2
 
-MAX_CONN equ 5
+MAX_CONN equ 1000
 REQUEST_CAP equ 128*1024
 
 macro write fd, buf, count {
@@ -121,7 +121,7 @@ next_request:
 
   mov [request_cur], request
 
-  write 1, [request_cur], [request_len]
+  ; write 1, [request_cur], [request_len]
 
   mov rbx, [request_cur]
   add rbx, 5
