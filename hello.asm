@@ -6,7 +6,7 @@ INADDR_ANY = 0
 SOL_SOCKET = 1
 SO_REUSEADDR = 2
 
-MAX_CONN equ 1000
+MAX_CONN equ 4069
 REQUEST_CAP equ 128*1024
 
 macro write fd, buf, count {
