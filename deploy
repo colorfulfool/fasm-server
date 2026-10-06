@@ -3,6 +3,11 @@ APP="hello"
 USER="deploy"
 HOST=$1
 
+restart_app() {
+  echo "Restarting $APP..."
+  ssh "$USER@$HOST" "pkill $APP; rm -f nohup.log; nohup /tmp/$APP >/dev/null 2>&1 </dev/null & disown; exit"
+}
+
 if [ $# -lt 1 ]; then
   echo "Usage: deploy HOST"
   exit 1
@@ -11,7 +16,7 @@ fi
 echo "Deploying $APP to $HOST..."
 ssh "$USER@$HOST" "mv /tmp/$APP /tmp/$APP-backup"
 rsync $APP "$USER@$HOST:/tmp/$APP"
-ssh "$USER@$HOST" "pkill $APP; rm -f nohup.log; nohup /tmp/$APP >/dev/null 2>&1 </dev/null & disown; exit"
+restart_app
 
 echo "Verifying deploy..."
 http GET "http://$HOST:6969" > /dev/null
@@ -20,5 +25,6 @@ if [ $? -eq 0 ]; then
 else
   echo "Bad release, reverting..."
   ssh "$USER@$HOST" "mv /tmp/$APP-backup /tmp/$APP"
+  restart_app
   echo "Done."
 fi
